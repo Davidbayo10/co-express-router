@@ -1,0 +1,36 @@
+{
+  "name": "co-express-router",
+  "version": "1.0.0",
+  "description": "Use generator-based flow-control as middleware in Express.",
+  "main": "index.js",
+  "scripts": {
+    "pretest": "npm install",
+    "test": "node node_modules/jasmine-node/lib/jasmine-node/cli.js test/index-test.js --verbose --matchall"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/davidbayo10/co-express-router.git"
+  },
+  "author": "David Bayo",
+  "license": "MIT",
+  "dependencies": {
+    "co": "^4.6.0",
+    "methods": "^1.1.2"
+  },
+  "devDependencies": {
+    "express": "^4.13.4",
+    "jasmine-co": "^1.1.0",
+    "jasmine-node": "^1.14.5",
+    "supertest": "^1.2.0",
+    "supertest-as-promised": "^3.1.0"
+  },
+  "keywords": [
+    "async",
+    "co",
+    "coro",
+    "coroutine",
+    "express",
+    "flow",
+    "generator"
+  ]
+}
