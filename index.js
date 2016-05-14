@@ -27,7 +27,6 @@ function wrapCallback(callback, type) {
 	// only wrap callbacks if they are generators
 	if (isGenerator(callback)) {
 		const coCallback = co.wrap(callback);
-		debugger
 		if (type === 'param') {
 			return function (req, res, next, value) {
 				coCallback(req, res, next, value, function (err) {
