@@ -26,7 +26,7 @@ describe('co-express-router', function () {
   });
 
   it('supports a single generator route', function* () {
-    const text = 'works'
+    const text = 'works';
     app.get('/', function* (req, res) {
       res.send(text);
     });
@@ -104,5 +104,20 @@ describe('co-express-router', function () {
     expect(res).toBeTruthy();
     expect(res.status).toBe(200);
     expect(res.text).toBe('thunkthunkfunc');
+  });
+
+  it('supports express Router', function* () {
+    const router = new express.Router();
+    require('../index.js')(router);
+    const text = 'works';
+    router.get('/', function* (req, res) {
+      res.send(text);
+    });
+
+    app.use(router);
+    const res = yield request.get('/').toPromise();
+    expect(res).toBeTruthy();
+    expect(res.status).toBe(200);
+    expect(res.text).toBe(text);
   });
 });
