@@ -120,4 +120,18 @@ describe('co-express-router', function () {
     expect(res.status).toBe(200);
     expect(res.text).toBe(text);
   });
+
+  it('supports co-express Router', function* () {
+    const router = require('../index.js')();
+    const text = 'works';
+    router.get('/', function* (req, res) {
+      res.send(text);
+    });
+
+    app.use(router);
+    const res = yield request.get('/').toPromise();
+    expect(res).toBeTruthy();
+    expect(res.status).toBe(200);
+    expect(res.text).toBe(text);
+  });
 });
