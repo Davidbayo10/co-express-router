@@ -124,12 +124,12 @@ describe('co-express-router', function () {
   it('supports co-express Router', function* () {
     const router = require('../index.js')();
     const text = 'works';
-    router.get('/', function* (req, res) {
+    router.get('/co', function* (req, res) {
       res.send(text);
     });
 
     app.use(router);
-    const res = yield request.get('/').toPromise();
+    const res = yield request.get('/co').toPromise();
     expect(res).toBeTruthy();
     expect(res.status).toBe(200);
     expect(res.text).toBe(text);
