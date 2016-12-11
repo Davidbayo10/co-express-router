@@ -1,6 +1,6 @@
 {
   "name": "co-express-router",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Use generator-based flow-control as middleware in Express.",
   "main": "index.js",
   "scripts": {
@@ -15,6 +15,7 @@
   "license": "MIT",
   "dependencies": {
     "co": "^4.6.0",
+    "is-generator": "^1.0.3",
     "methods": "^1.1.2"
   },
   "devDependencies": {

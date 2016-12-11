@@ -1,14 +1,11 @@
 'use strict';
 const co = require('co');
 const methods = require('methods');
+const isGenerator = require('is-generator').fn;
 const Router = require('express').Router;
 
 function isAppObj(obj) {
   return typeof obj.lazyrouter === 'function';
-}
-
-function isGenerator(f) {
-  return typeof f === 'function' && Object.getPrototypeOf(f) !== Object.getPrototypeOf(Function);
 }
 
 function flatten(arr, ret) {
