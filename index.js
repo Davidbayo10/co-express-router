@@ -1,6 +1,7 @@
 'use strict';
 const co = require('co');
 const methods = require('methods');
+const Router = require('express').Router;
 
 function isAppObj(obj) {
   return typeof obj.lazyrouter === 'function';
@@ -38,11 +39,11 @@ function wrapCallback(callback, type) {
         return function (err, req, res, next) {
           callbackWrapped(err, req, res, next).catch(err);
         };
-      } else {
-        return function (req, res, next) {
-          callbackWrapped(req, res, next).catch(next);
-        };
       }
+
+      return function (req, res, next) {
+        callbackWrapped(req, res, next).catch(next);
+      };
     }
   }
 
@@ -59,8 +60,8 @@ function applyMethodsToRoute(route) {
     route[method] = function () {
       const callbacks = flatten([].slice.call(arguments, 0)).map(callbackToWrap);
       return f.apply(route, callbacks);
-    }
-  }
+    };
+  };
 }
 
 function patchRoute(router) {
@@ -97,11 +98,13 @@ function patchParam(router) {
 }
 
 function patch(router) {
+  router = router || new Router();
   if (isAppObj(router)) {
     const app = router;
     app.lazyrouter();
     router = app._router;
   }
+
   router.route = patchRoute(router);
   router.use = patchUse(router);
   router.param = patchParam(router);
