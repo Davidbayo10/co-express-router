@@ -24,6 +24,9 @@
     "supertest": "^1.2.0",
     "supertest-as-promised": "^3.1.0"
   },
+  "peerDependencies": {
+    "express": "4.x"
+  },
   "keywords": [
     "async",
     "co",
