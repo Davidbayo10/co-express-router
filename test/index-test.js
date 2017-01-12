@@ -1,21 +1,22 @@
 'use strict';
+
+const co = require('co');
 const express = require('express');
 const supertest = require('supertest-as-promised');
-require('jasmine-co').install();
 
 function asyncText(err, text, cb) {
-  setImmediate(function() {
+  setImmediate(() => {
     cb(err, text);
   });
 }
 
 function thunk(err, text) {
-  return function(cb) {
+  return (cb) => {
     asyncText(err, text, cb);
   };
 }
 
-describe('co-express-router', function () {
+describe('co-express-router', () => {
   let app;
   let request;
 
@@ -25,113 +26,163 @@ describe('co-express-router', function () {
     request = supertest.agent(app);
   });
 
-  it('supports a single generator route', function* () {
-    const text = 'works';
-    app.get('/', function* (req, res) {
-      res.send(text);
-    });
+  it('supports a single generator route', done => {
+    co(function* () {
+      const text = 'works';
+      app.get('/', function* (req, res) {
+        res.send(text);
+      });
 
-    const res = yield request.get('/').toPromise();
-    expect(res).toBeTruthy();
-    expect(res.status).toBe(200);
-    expect(res.text).toBe(text);
+      const res = yield request.get('/').toPromise();
+      expect(res).toBeTruthy();
+      expect(res.status).toBe(200);
+      expect(res.text).toBe(text);
+      done();
+    })
+    .catch(done);
   });
 
-  it('supports multiple generator routes', function* () {
-    app.get('/', function* (req, res, next) {
-      req.val = yield thunk(null, 'thunk');
-      next();
-    }, function* (req, res, next) {
-      req.val += yield thunk(null, 'thunk');
-      next();
-    }, function* (req, res) {
-      res.send(req.val + 'func');
-    });
+  it('supports multiple generator routes', done => {
+    co(function* () {
+      app.get('/', function* (req, res, next) {
+        req.val = yield thunk(null, 'thunk');
+        next();
+      }, function* (req, res, next) {
+        req.val += yield thunk(null, 'thunk');
+        next();
+      }, function* (req, res) {
+        res.send(req.val + 'func');
+      });
 
-    const res = yield request.get('/').toPromise();
-    expect(res).toBeTruthy();
-    expect(res.status).toBe(200);
+      const res = yield request.get('/').toPromise();
+      expect(res).toBeTruthy();
+      expect(res.status).toBe(200);
+      done();
+    })
+    .catch(done);
   });
 
-  it('doesn\'t alter application object', function* () {
-    app.get('/', function* (req, res, next) {
-      res.send('it works!');
-    });
+  it('doesn\'t alter application object', done => {
+    co(function* () {
+      app.get('/', function* (req, res) {
+        res.send('it works!');
+      });
 
-    app.set('it', 'works!');
+      app.set('it', 'works!');
 
-    const res = yield request.get('/').toPromise();
-    expect(res).toBeTruthy();
-    expect(res.status).toBe(200);
-    expect(res.text).toBe('it works!');
-    expect(app.get('it')).toBe('works!');
+      const res = yield request.get('/').toPromise();
+      expect(res).toBeTruthy();
+      expect(res.status).toBe(200);
+      expect(res.text).toBe('it works!');
+      expect(app.get('it')).toBe('works!');
+      done();
+    })
+    .catch(done);
   });
 
-  it('supports error routes', function* () {
-    app.get('/', function* (req, res, next) {
-      const val = yield thunk(new Error('thunk error'));
-      res.send(val);
-    });
+  it('supports error routes', done => {
+    co(function* () {
+      app.get('/', function* (req, res) {
+        const val = yield thunk(new Error('thunk error'));
+        res.send(val);
+      });
 
-    app.use(function (err, req, res, next) {
-      if (err && err.message === 'thunk error') {
-        res.send('caught');
-      } else {
-        next(err);
-      }
-    });
+      app.use((err, req, res, next) => {
+        if (err && err.message === 'thunk error') {
+          res.send('caught');
+        } else {
+          next(err);
+        }
+      });
 
-    const res = yield request.get('/').toPromise();
-    expect(res).toBeTruthy();
-    expect(res.text).toBe('caught');
+      const res = yield request.get('/').toPromise();
+      expect(res).toBeTruthy();
+      expect(res.text).toBe('caught');
+      done();
+    })
+    .catch(done);
   });
 
-  it('supports app.route()', function* () {
-    const books = app.route('/books');
+  it('supports app.route()', done => {
+    co(function* () {
+      const books = app.route('/books');
 
-    books.get(function* (req, res, next) {
-      req.val = yield thunk(null, 'thunk');
-      next();
-    }, function* (req, res, next) {
-      req.val += yield thunk(null, 'thunk');
-      next();
-    }, function* (req, res) {
-      res.send(req.val + 'func');
-    });
+      books.get(function* (req, res, next) {
+        req.val = yield thunk(null, 'thunk');
+        next();
+      }, function* (req, res, next) {
+        req.val += yield thunk(null, 'thunk');
+        next();
+      }, function* (req, res) {
+        res.send(req.val + 'func');
+      });
 
 
-    const res = yield request.get('/books').toPromise();
-    expect(res).toBeTruthy();
-    expect(res.status).toBe(200);
-    expect(res.text).toBe('thunkthunkfunc');
+      const res = yield request.get('/books').toPromise();
+      expect(res).toBeTruthy();
+      expect(res.status).toBe(200);
+      expect(res.text).toBe('thunkthunkfunc');
+      done();
+    })
+    .catch(done);
   });
 
-  it('supports express Router', function* () {
-    const router = new express.Router();
-    require('../index.js')(router);
-    const text = 'works';
-    router.get('/', function* (req, res) {
-      res.send(text);
-    });
+  it('supports app.param()', done => {
+    co(function* () {
+      const id = 'id';
+      app.param('id', function* (req, res, next, id) {
+        req.val = yield thunk(null, id);
+        next();
+      });
 
-    app.use(router);
-    const res = yield request.get('/').toPromise();
-    expect(res).toBeTruthy();
-    expect(res.status).toBe(200);
-    expect(res.text).toBe(text);
+      app.get('/:id', (req, res, next) => {
+        res.send(req.val);
+        next();
+      });
+
+      const res = yield request.get(`/${id}`).toPromise();
+      expect(res).toBeTruthy();
+      expect(res.status).toBe(200);
+      expect(res.text).toBe('id');
+      done();
+    })
+    .catch(done);
   });
 
-  it('supports co-express Router', function* () {
-    const router = require('../index.js')();
-    const text = 'works';
-    router.get('/co', function* (req, res) {
-      res.send(text);
-    });
+  it('supports express Router', done => {
+    co(function* () {
+      const router = new express.Router();
+      require('../index.js')(router);
+      const text = 'works';
+      router.get('/', function* (req, res) {
+        res.send(text);
+      });
 
-    app.use(router);
-    const res = yield request.get('/co').toPromise();
-    expect(res).toBeTruthy();
-    expect(res.status).toBe(200);
-    expect(res.text).toBe(text);
+      app.use(router);
+      const res = yield request.get('/').toPromise();
+      expect(res).toBeTruthy();
+      expect(res.status).toBe(200);
+      expect(res.text).toBe(text);
+      done();
+    })
+    .catch(done);
+  });
+
+  it('supports co-express Router', done => {
+    co(function* () {
+      const router = require('../index.js')();
+      const text = 'works';
+      router.get('/co', function* (req, res) {
+        res.send(text);
+      });
+
+      app.use(router);
+      const res = yield request.get('/co').toPromise();
+      expect(res).toBeTruthy();
+      expect(res.status).toBe(200);
+      expect(res.text).toBe(text);
+      done();
+    })
+    .catch(done);
   });
 });
