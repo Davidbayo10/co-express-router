@@ -1,12 +1,10 @@
 'use strict';
 
-exports.isString = function (obj) {
-  return typeof obj === 'string';
-};
+exports.isString = obj => typeof obj === 'string';
 
-exports.isFunction = function (fn) {
-  return typeof fn === 'function';
-};
+exports.isFunction = fn => typeof fn === 'function';
+
+exports.isError = err => err instanceof Error;
 
 exports.flatten = function flatten(arr, ret) {
   ret = ret || [];
