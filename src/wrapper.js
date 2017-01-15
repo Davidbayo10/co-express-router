@@ -1,21 +1,29 @@
 'use strict';
 
 const co = require('co');
+const util = require('./util');
 const EXPRESS_ITEMS = require('./enums').EXPRESS_ITEMS;
 
 module.exports = (callback) => {
-  const argsLength = callback.length;
   const wrappedCallback = co.wrap(callback);
+
+  function isFirstArgumentError(err) {
+    return util.isError(err);
+  }
+
+  function isCallbackErrorHandler(callback) {
+    return isFirstArgumentError.call(callback);
+  }
 
   function wrapCallbackParam(req, res, next, value) {
     wrappedCallback(req, res, next, value).catch(next);
   }
 
-  function getCallbackByArgs(argsLength) {
-    // check callback arity to find out if it's error-handling middleware
-    if (argsLength > 3) {
+  function wrapCallback() {
+    // check if first argument is an error to find out if it's error-handling middleware
+    if (isCallbackErrorHandler(callback)) {
       return (err, req, res, next) => {
-        wrappedCallback(err, req, res, next).catch(err);
+        wrappedCallback(err, req, res, next).catch(next);
       };
     }
 
@@ -30,7 +38,7 @@ module.exports = (callback) => {
         return wrapCallbackParam;
         break;
       default:
-        return getCallbackByArgs(argsLength);
+        return wrapCallback();
         break;
     }
   }
