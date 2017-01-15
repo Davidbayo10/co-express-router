@@ -16,9 +16,9 @@ function applyMethodsToRoute(route) {
 }
 
 function patchRoute(router) {
-  const originalRoute = router.route;
+  const expressRoute = router.route;
   return function (path) {
-    const route = originalRoute.call(router, path);
+    const route = expressRoute.call(router, path);
     const allMethods = methods.concat('all');
     allMethods.forEach(applyMethodsToRoute(route));
     return route;
