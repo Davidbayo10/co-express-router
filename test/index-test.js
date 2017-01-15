@@ -4,16 +4,14 @@ const co = require('co');
 const express = require('express');
 const supertest = require('supertest-as-promised');
 
-function asyncText(err, text, cb) {
-  setImmediate(() => {
-    cb(err, text);
-  });
-}
-
 function thunk(err, text) {
-  return (cb) => {
-    asyncText(err, text, cb);
-  };
+  return new Promise((resolve, reject) => {
+    if (err) {
+      return reject(err);
+    }
+
+    return resolve(text);
+  });
 }
 
 describe('co-express-router', () => {
@@ -37,6 +35,26 @@ describe('co-express-router', () => {
       expect(res).toBeTruthy();
       expect(res.status).toBe(200);
       expect(res.text).toBe(text);
+      done();
+    })
+    .catch(done);
+  });
+
+  it('supports legacy route handler,', done => {
+    co(function* () {
+      app.get('/', function (req, res, next) {
+        req.val = 'thunk';
+        next();
+      }, function* (req, res, next) {
+        req.val += yield thunk(null, 'thunk');
+        next();
+      }, function (req, res) {
+        res.send(req.val + 'func');
+      });
+
+      const res = yield request.get('/').toPromise();
+      expect(res).toBeTruthy();
+      expect(res.status).toBe(200);
       done();
     })
     .catch(done);
@@ -92,6 +110,33 @@ describe('co-express-router', () => {
           res.send('caught');
         } else {
           next(err);
+        }
+      });
+
+      const res = yield request.get('/').toPromise();
+      expect(res).toBeTruthy();
+      expect(res.text).toBe('caught');
+      done();
+    })
+    .catch(done);
+  });
+
+  it('supports error handlers routes', done => {
+    co(function* () {
+      app.get('/', function* (req, res) {
+        const val = yield thunk(new Error('thunk error'));
+        res.send(val);
+      });
+
+      app.use((err, req, res, next) => {
+        next(err);
+      });
+
+      app.use((err, req, res, next) => {
+        if (err && err.message === 'thunk error') {
+          res.send('caught');
+        } else {
+          res.end();
         }
       });
 
